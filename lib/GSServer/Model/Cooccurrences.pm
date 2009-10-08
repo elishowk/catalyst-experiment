@@ -5,9 +5,9 @@ use warnings;
 use parent 'Catalyst::Model::DBIC::Schema';
 
 __PACKAGE__->config(
-	schema_class => 'MyApp::Schema::FilmDB',
+	schema_class => 'GSServer::Schema::Cooccurrences',
 	connect_info => {
-		dsn => "dbi:SQLite:dbcooccurrences.db",
+		dsn => "dbi:SQLite:db/cooccurrences.db",
 	}
 );
 

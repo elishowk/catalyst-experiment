@@ -4,39 +4,46 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller::REST';
 
+use YAML::Syck;
+
 __PACKAGE__->config(
 	'default'	=> 'application/json',
 	'map'		=> {
 		'application/json'	=>	'JSON',
-		'text/x-json'
-	},
+		'text/x-json' => 'JSON',
+	}
 );
 
 
-sub add : Local : ActionClass('REST') {
+sub addentry : Local : ActionClass('REST') {
 	my ( $self, $c, $version ) = @_;
 }
 
-sub add_POST : Local : ActionClass('REST')  {
+sub addentry_POST : Local : ActionClass('REST')  {
 	my ( $self, $c ) = @_;
-	if ( $c->model('Cooccurrences')->insert( $c->request->data ) ) {
-		$self->	status_ok( $c, entity => $response );
+	my $response;
+	if ( $c->req->params ) {
+		if ( $c->model('Cooccurrences')->update_or_create( $c->req->params ) ) {
+			$self->	status_ok( $c, entity => { msg => 'hello' } );
+		}
+		else {
+			$self->status_bad_request( $c, message => 'error inserting data' );
+		}
 	}
 	else {
-		$self->status_bad_request( $c, message => 'error inserting data' );
+		$self->	status_ok( $c, entity => { msg => 'no data received' } );		
 	}
 }
 
-sub get : Local : ActionClass('REST') {
+sub getentry : Local : ActionClass('REST') {
 	my ( $self, $c, $version ) = @_;
 }
 
-sub get_GET : Local : ActionClass('REST')  {
+sub getentry_GET : Local : ActionClass('REST')  {
 	my ( $self, $c ) = @_;
-	my $response = {
-		'msg' => 'hello_world',
-	};
-	$self->status_ok( $c, entity => $response );
+	my $response = $c->model('Cooccurrences::Matrix')->all;
+	warn Dump $response;
+	$self->status_ok( $c, entity => { msg => 'hello world' } );
 }
 
 =head1 NAME
