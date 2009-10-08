@@ -14,6 +14,12 @@ __PACKAGE__->config(
 	}
 );
 
+sub _inflated_columns {
+   my ( $self, $resultset, $array ) = @_;
+   return {
+      map { $_ => $resultset->$_ } @$array,
+   };
+}
 
 sub addentry : Local : ActionClass('REST') {
 	my ( $self, $c, $version ) = @_;
@@ -23,9 +29,10 @@ sub addentry_POST : Local : ActionClass('REST')  {
 	my ( $self, $c ) = @_;
 	# TODO verify required fields
 	if ( $c->req->data ) {
-		my $response = $c->model('Cooccurrences::Matrix')->update_or_create(
-							$c->req->data
-						);
+		my $response =
+			$c->model('Cooccurrences::Matrix')->update_or_create(
+				$c->req->data
+			);
 		$self->status_ok( $c, entity =>
 			{ in_storage => $response->in_storage } );
 	}
@@ -40,9 +47,12 @@ sub getentry : Local : ActionClass('REST') {
 
 sub getentry_GET : Local : ActionClass('REST')  {
 	my ( $self, $c ) = @_;
-	my $response = $c->model('Cooccurrences::Matrix')->all;
-	warn Dump $response;
-	$self->status_ok( $c, entity => { msg => 'hello world' } );
+	my $response = $c->model('Cooccurrences::Matrix')->find(
+		$c->req->params
+	);
+	my @columns = $response->result_source->columns;
+	$response = $self->_inflated_columns( $response, \@columns );
+	$self->status_ok( $c, entity => $response );
 }
 
 =head1 NAME
