@@ -21,19 +21,16 @@ sub addentry : Local : ActionClass('REST') {
 
 sub addentry_POST : Local : ActionClass('REST')  {
 	my ( $self, $c ) = @_;
-	my $response;
-	if ( $c->req->params ) {
-		$response = $c->model('Cooccurrences::Matrix')->update_or_create( $c->req->params );
-		warn Dump $response;
-		if ( $response ) {
-			$self->	status_ok( $c, entity => { msg => 'hello' } );
-		}
-		else {
-			$self->status_bad_request( $c, message => 'error inserting data' );
-		}
+	# TODO verify required fields
+	if ( $c->req->data ) {
+		my $response = $c->model('Cooccurrences::Matrix')->update_or_create(
+							$c->req->data
+						);
+		$self->status_ok( $c, entity =>
+			{ in_storage => $response->in_storage } );
 	}
 	else {
-		$self->	status_ok( $c, entity => { msg => 'no data received' } );		
+		$self->status_bad_request( $c, message => 'bad data received' );		
 	}
 }
 
