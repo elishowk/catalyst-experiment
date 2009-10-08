@@ -23,7 +23,9 @@ sub addentry_POST : Local : ActionClass('REST')  {
 	my ( $self, $c ) = @_;
 	my $response;
 	if ( $c->req->params ) {
-		if ( $c->model('Cooccurrences')->update_or_create( $c->req->params ) ) {
+		$response = $c->model('Cooccurrences::Matrix')->update_or_create( $c->req->params );
+		warn Dump $response;
+		if ( $response ) {
 			$self->	status_ok( $c, entity => { msg => 'hello' } );
 		}
 		else {
