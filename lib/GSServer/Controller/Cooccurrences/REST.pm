@@ -25,7 +25,7 @@ sub addentry : Local : ActionClass('REST') {
 	my ( $self, $c, $version ) = @_;
 }
 
-sub addentry_POST : Local : ActionClass('REST')  {
+sub addentry_POST {
 	my ( $self, $c ) = @_;
 	# TODO verify required fields
 	if ( $c->req->data ) {
@@ -45,13 +45,18 @@ sub getentry : Local : ActionClass('REST') {
 	my ( $self, $c, $version ) = @_;
 }
 
-sub getentry_GET : Local : ActionClass('REST')  {
+sub getentry_GET {
 	my ( $self, $c ) = @_;
 	my $response = $c->model('Cooccurrences::Matrix')->find(
 		$c->req->params
 	);
-	my @columns = $response->result_source->columns;
-	$response = $self->_inflated_columns( $response, \@columns );
+	if ( $response ) {
+		my @columns = $response->result_source->columns;
+		$response = $self->_inflated_columns( $response, \@columns );
+	}
+	else {
+		$response = { empty => 1 };
+	}
 	$self->status_ok( $c, entity => $response );
 }
 
