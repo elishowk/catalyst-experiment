@@ -77,16 +77,19 @@ sub getmatrix : Local : ActionClass('REST') {
 
 sub getmatrix_GET {
 	my ( $self, $c ) = @_;
-	my $response = $c->model('Cooccurrences::Matrix')->all; 
-	if ( $response ) {
-		warn Dump $response;
-		#my @columns = $response->result_source->columns;
-		#$response = $self->_inflated_columns( $response, \@columns );
+	my $res = [];
+	my $response = $c->model('Cooccurrences::Matrix')->search();
+	if ( defined $response ) {
+		while ( my $item = $response->next ) {
+			my @columns = $item->result_source->columns;
+			push @$res, $self->_inflated_columns( $item, \@columns );
+		}
 	}
 	else {
-		$response = { empty => 1 };
+		$self->status_no_content( $c );
+		$c->detach;
 	}
-	$self->status_ok( $c, entity => $response );
+	$self->status_ok( $c, entity => $res );
 }
 =head1 NAME
 
