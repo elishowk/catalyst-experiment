@@ -9,7 +9,7 @@ use YAML::Syck;
 __PACKAGE__->config(
 	'default'	=> 'application/json',
 	'map'		=> {
-		'application/json'	=>	'JSON',
+		'application/json' => 'JSON',
 		'text/x-json' => 'JSON',
 	}
 );
@@ -28,16 +28,21 @@ sub addentry : Local : ActionClass('REST') {
 sub addentry_POST {
 	my ( $self, $c ) = @_;
 	# TODO verify required fields
-	if ( $c->req->data ) {
+	my $params = $c->req->data;
+	if ( 	defined $params->{ ngram1 } &&
+		defined $params->{ ngram2 } &&
+		defined $params->{ year } &&
+		defined $params->{ cooc }
+	) {
 		my $response =
 			$c->model('Cooccurrences::Matrix')->update_or_create(
-				$c->req->data
+				$params
 			);
 		$self->status_ok( $c, entity =>
 			{ in_storage => $response->in_storage } );
 	}
 	else {
-		$self->status_bad_request( $c, message => 'bad data received' );
+		$self->status_bad_request( $c, message => 'bad params' );
 	}
 }
 
