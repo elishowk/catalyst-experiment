@@ -37,7 +37,7 @@ sub addentry_POST {
 			{ in_storage => $response->in_storage } );
 	}
 	else {
-		$self->status_bad_request( $c, message => 'bad data received' );		
+		$self->status_bad_request( $c, message => 'bad data received' );
 	}
 }
 
@@ -47,19 +47,47 @@ sub getentry : Local : ActionClass('REST') {
 
 sub getentry_GET {
 	my ( $self, $c ) = @_;
-	my $response = $c->model('Cooccurrences::Matrix')->find(
-		$c->req->params
-	);
-	if ( $response ) {
+	my $response;
+	if (	$c->req->params->{ ngram1 } &&  
+			$c->req->params->{ ngram2 } &&  
+			$c->req->params->{ year }  
+	) {
+		$response = $c->model('Cooccurrences::Matrix')->find(
+			$c->req->params
+		);
+	} else {
+		$self->status_bad_request( $c, message => 'bad params' );
+		$c->detach;
+	}
+	if ( defined $response ) {
 		my @columns = $response->result_source->columns;
-		$response = $self->_inflated_columns( $response, \@columns );
+		my $formated = $self->_inflated_columns( $response, \@columns );
+		$self->status_ok( $c, entity => $formated );
+		$c->detach;
+	}
+	else {
+		$self->status_no_content( $c );
+		$c->detach;
+	}
+}
+
+sub getmatrix : Local : ActionClass('REST') {
+	my ( $self, $c, $version ) = @_;
+}
+
+sub getmatrix_GET {
+	my ( $self, $c ) = @_;
+	my $response = $c->model('Cooccurrences::Matrix')->all; 
+	if ( $response ) {
+		warn Dump $response;
+		#my @columns = $response->result_source->columns;
+		#$response = $self->_inflated_columns( $response, \@columns );
 	}
 	else {
 		$response = { empty => 1 };
 	}
 	$self->status_ok( $c, entity => $response );
 }
-
 =head1 NAME
 
 GSServer::Controller::Cooccurrences::REST - Catalyst Controller
